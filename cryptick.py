@@ -5,6 +5,10 @@ Cryptick usb client class
 Provides an interface to send commands to a cryptick usb device.
 Examples:
 
+# get the device version information 
+# For example, a version 1 device will return "Cryptick FE v1"
+python cryptick.py --getversion
+
 # get the internal clock time and UTC offset from 
 # the cryptick device
 python cryptick.py --gettime
@@ -88,6 +92,9 @@ class cryptick_client:
 		parser.add_argument("--port", default=None, type=str, nargs=1, required=False,
 												help="specify a serial port (for example, COM1)")
 
+		parser.add_argument("--getversion", default=None, action="store_true", required=False,
+												help="gets the device's version string")
+
 		parser.add_argument("--gettime", default=None, action="store_true", required=False,
 												help="gets the device's internal clock current time")
 
@@ -136,9 +143,6 @@ class cryptick_client:
 		parser.add_argument("--getpubkey", default=None, type=str, required=False,
 												help="get the device's public key pem - specify pem file for the authenticate command.  For example: cryptick.pem.")
 
-		parser.add_argument("--provision", default=None, action="store_true", required=False,
-												help="provision the device's ATECC chip to generate internal private key.")
-		
 		parser.add_argument("--authenticate", default=None, action="store_true", required=False,
 												help="authenticate the device using ECDSA.")
 		parser_auth_group.add_argument("--serial", default=None, type=str, required=False,
@@ -512,10 +516,22 @@ class cryptick_client:
 		self.check_command_result("getconfig", response)
 
 
+	# get the device version string
+	def cmd_getversion(self):
+		message = {}
+		message['cmd'] = "getversion"
+
+		response = self.send_usb_command(message)
+
+		if self.check_command_result("getversion", response):
+			json_response = json.loads(response)
+			print("version: {}".format(json_response['version']))
+
+
 	# set the device wifi ssid and password
 	def cmd_set_wifi(self):
 		if self.args.setwifi is None:
-			print("setcwifi - error, no ssid / password specified.")
+			print("setwifi - error, no ssid / password specified.")
 			exit(1)
 
 		message = {}
@@ -593,8 +609,8 @@ class cryptick_client:
 			self.cmd_getconfig()
 		elif self.args.setassetsdata:
 			self.cmd_setassetsdata()
-		elif self.args.provision:
-			self.cmd_provision()
+		elif self.args.getversion:
+			self.cmd_getversion()
 		else:
 			print("Invalid command.")
 
