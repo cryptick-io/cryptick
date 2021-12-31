@@ -163,6 +163,8 @@ class cryptick_client:
 			return True
 		else:
 			print("{} command failed.".format(command_name))
+			if json_response['error']:
+				print("Error: " + json_response['error'])
 			return False
 
 
@@ -328,23 +330,20 @@ class cryptick_client:
 		message['cmd'] = "getpubkey"
 
 		response = self.send_usb_command(message)
-		print(str(response))
+		if not self.check_command_result("getpubkey", response):
+			return False
 
 		json_response = json.loads(response)
 		pub_key_pem = json_response.get('public_key')
-		if 'success' == json_response['result'] and pub_key_pem:
-			if 0 != len(self.args.getpubkey):
-				pem_filename = self.args.getpubkey		
-				f = open(pem_filename, "w")
-				f.write(pub_key_pem)
-				f.close()
-				print("wrote pem to: " + pem_filename)
 
-			print("Cryptick public key pem:\n" + pub_key_pem + '\n')
-			return True
-		else:
-			print("Get public key command failed.")
-			return False
+		pem_filename = self.args.getpubkey		
+		f = open(pem_filename, "w")
+		f.write(pub_key_pem)
+		f.close()
+		print("wrote pem to: " + pem_filename)
+		print("Cryptick public key pem:\n" + pub_key_pem + '\n')
+		return True
+
 
 
 	# set display brightness, range [0,4]
@@ -409,7 +408,9 @@ class cryptick_client:
 		message['cmd'] = "getcurrencylist"
 
 		response = self.send_usb_command(message)
-		self.check_command_result("getcurrencylist", response)
+		if self.check_command_result("getcurrencylist", response):
+			json_response = json.loads(response)
+			print("available currencies: {}".format(json_response['currencies']))
 
 
 	# get the device coin list
@@ -418,8 +419,9 @@ class cryptick_client:
 		message['cmd'] = "getcoinlist"
 
 		response = self.send_usb_command(message)
-		self.check_command_result("getcoinlist", response)
-
+		if self.check_command_result("getcoinlist", response):
+			json_response = json.loads(response)
+			print("available coins: {}".format(json_response['coins']))
 
 	# set the device currency list
 	def cmd_setcurrency(self):
@@ -504,7 +506,8 @@ class cryptick_client:
 		message['assetsdata'] = json_assetsdata;
 
 		response = self.send_usb_command(message)
-		self.check_command_result("setwifi", response)
+		self.check_command_result("setassetsdata", response)
+
 
 
 	# get the device configuration json string
@@ -513,7 +516,9 @@ class cryptick_client:
 		message['cmd'] = "getconfig"
 
 		response = self.send_usb_command(message)
-		self.check_command_result("getconfig", response)
+		if self.check_command_result("getconfig", response):
+			json_response = json.loads(response)
+			print("config: {}".format(json_response['config']))
 
 
 	# get the device version string

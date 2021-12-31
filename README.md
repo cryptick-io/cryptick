@@ -12,7 +12,7 @@ If you're here to authenticate your Cryptick device, skip down to the [Digital S
 ## Available Commands
 
 ### getversion
-Get the cryptick device's version information 
+Get the cryptick device's version information.
 For example, a version 1 device will return "Cryptick FE v1"
 
 ```python cryptick.py --getversion```
